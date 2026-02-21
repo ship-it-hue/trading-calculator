@@ -208,12 +208,22 @@
         <div class="row"><span>Max $ at Risk</span> <span class="val gold" id="r-risk"></span></div>
         <div class="row"><span>Risk Per Share</span> <span class="val" id="r-rps"></span></div>
         <div class="row"><span>Total Cost</span> <span class="val" id="r-cost"></span></div>
+        <div class="shares-big" style="border-color:#2d1a1a">
+            <div class="slabel">Max Loss</div>
+            <div class="snum" id="r-loss" style="color:#ef4444"></div>
+            <div class="ssub" id="r-loss-sub"></div>
+        </div>
+
+        <div class="shares-big" id="row-gain" style="border-color:#1a2d1a">
+            <div class="slabel">Potential Reward</div>
+            <div class="snum" id="r-gain" style="color:#22c55e"></div>
+            <div class="ssub" id="r-gain-sub"></div>
+        </div>
+
         <div class="row"><span>Stop-Loss at</span> <span class="val red" id="r-stop"></span></div>
-        <div class="row"><span>Max Loss</span> <span class="val red" id="r-loss"></span></div>
+        <div class="row" id="row-rr"><span>Risk : Reward</span> <span class="val gold" id="r-rr"></span></div>
         <div class="row"><span>Account After Loss</span> <span class="val" id="r-after-loss"></span></div>
         <div class="row" id="row-target"><span>Profit Target</span> <span class="val green" id="r-target"></span></div>
-        <div class="row" id="row-gain"> <span>Potential Profit</span> <span class="val green" id="r-gain"></span></div>
-        <div class="row" id="row-rr"> <span>Risk : Reward</span> <span class="val gold" id="r-rr"></span></div>
         <div class="row" id="row-after"><span>Account After Profit</span> <span class="val green"
                 id="r-after-profit"></span></div>
     </div>
@@ -256,6 +266,7 @@
             $('r-cost').textContent = fmt(cost);
             $('r-stop').textContent = fmt(stop);
             $('r-loss').textContent = '−' + fmt(maxLoss);
+            $('r-loss-sub').textContent = 'account after stop: ' + fmt(acc - maxLoss);
             $('r-after-loss').textContent = fmt(acc - maxLoss);
 
             if (target) {
@@ -263,10 +274,13 @@
                 const rr = (target - entry) / riskPerShare;
                 $('r-target').textContent = fmt(target);
                 $('r-gain').textContent = '+' + fmt(gain);
+                $('r-gain-sub').textContent = 'account after profit: ' + fmt(acc + gain);
                 $('r-rr').textContent = '1 : ' + rr.toFixed(2);
                 $('r-after-profit').textContent = fmt(acc + gain);
                 ['row-target', 'row-gain', 'row-rr', 'row-after'].forEach(id => $(id).style.display = '');
             } else {
+                $('r-gain').textContent = '';
+                $('r-gain-sub').textContent = 'enter a profit target above';
                 ['row-target', 'row-gain', 'row-rr', 'row-after'].forEach(id => $(id).style.display = 'none');
             }
 
