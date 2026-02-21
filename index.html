@@ -1,0 +1,280 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>Trade Calculator</title>
+    <style>
+        * {
+            box-sizing: border-box;
+            margin: 0;
+            padding: 0;
+        }
+
+        body {
+            font-family: system-ui, sans-serif;
+            background: #0e0e0e;
+            color: #e0e0e0;
+            padding: 30px 20px;
+            max-width: 500px;
+            margin: 0 auto;
+        }
+
+        h1 {
+            font-size: 20px;
+            font-weight: 700;
+            margin-bottom: 20px;
+            color: #fff;
+        }
+
+        .field {
+            margin-bottom: 14px;
+        }
+
+        label {
+            display: block;
+            font-size: 12px;
+            color: #888;
+            margin-bottom: 5px;
+            text-transform: uppercase;
+            letter-spacing: 0.04em;
+        }
+
+        input {
+            width: 100%;
+            background: #1a1a1a;
+            border: 1px solid #2e2e2e;
+            border-radius: 6px;
+            padding: 10px 12px;
+            font-size: 16px;
+            color: #fff;
+            outline: none;
+            -moz-appearance: textfield;
+        }
+
+        input::-webkit-inner-spin-button,
+        input::-webkit-outer-spin-button {
+            -webkit-appearance: none;
+        }
+
+        input:focus {
+            border-color: #555;
+        }
+
+        button {
+            width: 100%;
+            margin-top: 6px;
+            padding: 12px;
+            background: #2563eb;
+            border: none;
+            border-radius: 6px;
+            color: #fff;
+            font-size: 15px;
+            font-weight: 600;
+            cursor: pointer;
+        }
+
+        button:hover {
+            background: #1d4ed8;
+        }
+
+        hr {
+            border: none;
+            border-top: 1px solid #222;
+            margin: 24px 0;
+        }
+
+        .results {
+            display: none;
+        }
+
+        .row {
+            display: flex;
+            justify-content: space-between;
+            align-items: baseline;
+            padding: 7px 0;
+            border-bottom: 1px solid #1e1e1e;
+            font-size: 15px;
+        }
+
+        .row:last-child {
+            border-bottom: none;
+        }
+
+        .row span:first-child {
+            color: #888;
+        }
+
+        .val {
+            font-weight: 600;
+            font-variant-numeric: tabular-nums;
+        }
+
+        .green {
+            color: #22c55e;
+        }
+
+        .red {
+            color: #ef4444;
+        }
+
+        .blue {
+            color: #60a5fa;
+        }
+
+        .gold {
+            color: #f59e0b;
+        }
+
+        .shares-big {
+            text-align: center;
+            padding: 20px 0 18px;
+            border-bottom: 1px solid #2a2a2a;
+            margin-bottom: 6px;
+        }
+
+        .shares-big .slabel {
+            font-size: 12px;
+            color: #888;
+            text-transform: uppercase;
+            letter-spacing: 0.05em;
+            margin-bottom: 6px;
+        }
+
+        .shares-big .snum {
+            font-size: 56px;
+            font-weight: 800;
+            color: #60a5fa;
+            line-height: 1;
+        }
+
+        .shares-big .ssub {
+            font-size: 13px;
+            color: #555;
+            margin-top: 6px;
+        }
+
+        .err {
+            display: none;
+            color: #f87171;
+            font-size: 13px;
+            margin-top: 8px;
+        }
+    </style>
+</head>
+
+<body>
+
+    <h1>Trade Calculator</h1>
+
+    <div class="field">
+        <label>Account Balance ($)</label>
+        <input type="number" id="account" placeholder="200600" />
+    </div>
+
+    <div class="field">
+        <label>Risk % (default 1%)</label>
+        <input type="number" id="risk" placeholder="1" value="1" />
+    </div>
+
+    <div class="field">
+        <label>Entry Price ($)</label>
+        <input type="number" id="entry" placeholder="230.00" step="0.01" />
+    </div>
+
+    <div class="field">
+        <label>Stop-Loss Price ($)</label>
+        <input type="number" id="stop" placeholder="225.00" step="0.01" />
+    </div>
+
+    <div class="field">
+        <label>Profit Target ($) — optional</label>
+        <input type="number" id="target" placeholder="245.00" step="0.01" />
+    </div>
+
+    <button onclick="calc()">Calculate</button>
+    <div class="err" id="err"></div>
+
+    <div class="results" id="results">
+        <hr />
+
+        <div class="shares-big">
+            <div class="slabel">Shares to Buy</div>
+            <div class="snum" id="r-shares"></div>
+            <div class="ssub" id="r-shares-sub"></div>
+        </div>
+
+        <div class="row"><span>Max $ at Risk</span> <span class="val gold" id="r-risk"></span></div>
+        <div class="row"><span>Risk Per Share</span> <span class="val" id="r-rps"></span></div>
+        <div class="row"><span>Total Cost</span> <span class="val" id="r-cost"></span></div>
+        <div class="row"><span>Stop-Loss at</span> <span class="val red" id="r-stop"></span></div>
+        <div class="row"><span>Max Loss</span> <span class="val red" id="r-loss"></span></div>
+        <div class="row"><span>Account After Loss</span> <span class="val" id="r-after-loss"></span></div>
+        <div class="row" id="row-target"><span>Profit Target</span> <span class="val green" id="r-target"></span></div>
+        <div class="row" id="row-gain"> <span>Potential Profit</span> <span class="val green" id="r-gain"></span></div>
+        <div class="row" id="row-rr"> <span>Risk : Reward</span> <span class="val gold" id="r-rr"></span></div>
+        <div class="row" id="row-after"><span>Account After Profit</span> <span class="val green"
+                id="r-after-profit"></span></div>
+    </div>
+
+    <script>
+        const $ = id => document.getElementById(id);
+        const fmt = n => '$' + Number(n).toLocaleString('en-US', { minimumFractionDigits: 2, maximumFractionDigits: 2 });
+
+        function err(msg) {
+            $('err').textContent = msg;
+            $('err').style.display = 'block';
+            $('results').style.display = 'none';
+        }
+
+        function calc() {
+            $('err').style.display = 'none';
+
+            const acc = parseFloat($('account').value);
+            const riskPct = parseFloat($('risk').value) || 1;
+            const entry = parseFloat($('entry').value);
+            const stop = parseFloat($('stop').value);
+            const target = parseFloat($('target').value);
+
+            if (!acc || acc <= 0) return err('Enter a valid account balance.');
+            if (!entry || entry <= 0) return err('Enter a valid entry price.');
+            if (!stop || stop <= 0) return err('Enter a valid stop-loss price.');
+            if (stop >= entry) return err('Stop-loss must be below entry price.');
+            if (target && target <= entry) return err('Profit target must be above entry price.');
+
+            const totalRisk = acc * (riskPct / 100);
+            const riskPerShare = entry - stop;
+            const shares = Math.floor(totalRisk / riskPerShare);
+            const cost = shares * entry;
+            const maxLoss = shares * riskPerShare;
+
+            $('r-risk').textContent = fmt(totalRisk);
+            $('r-rps').textContent = fmt(riskPerShare);
+            $('r-shares').textContent = shares.toLocaleString();
+            $('r-shares-sub').textContent = 'shares  ·  total cost ' + fmt(cost);
+            $('r-cost').textContent = fmt(cost);
+            $('r-stop').textContent = fmt(stop);
+            $('r-loss').textContent = '−' + fmt(maxLoss);
+            $('r-after-loss').textContent = fmt(acc - maxLoss);
+
+            if (target) {
+                const gain = shares * (target - entry);
+                const rr = (target - entry) / riskPerShare;
+                $('r-target').textContent = fmt(target);
+                $('r-gain').textContent = '+' + fmt(gain);
+                $('r-rr').textContent = '1 : ' + rr.toFixed(2);
+                $('r-after-profit').textContent = fmt(acc + gain);
+                ['row-target', 'row-gain', 'row-rr', 'row-after'].forEach(id => $(id).style.display = '');
+            } else {
+                ['row-target', 'row-gain', 'row-rr', 'row-after'].forEach(id => $(id).style.display = 'none');
+            }
+
+            $('results').style.display = 'block';
+        }
+
+        document.addEventListener('keydown', e => { if (e.key === 'Enter') calc(); });
+    </script>
+</body>
+
+</html>
