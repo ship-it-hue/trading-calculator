@@ -147,6 +147,12 @@
             font-weight: 800;
             color: #60a5fa;
             line-height: 1;
+            background: transparent;
+            border: none;
+            text-align: center;
+            width: 100%;
+            outline: none;
+            cursor: text;
         }
 
         .shares-big .ssub {
@@ -201,7 +207,7 @@
 
         <div class="shares-big">
             <div class="slabel">Shares to Buy</div>
-            <div class="snum" id="r-shares"></div>
+            <input type="number" class="snum" id="r-shares" oninput="manualUpdate()" />
             <div class="ssub" id="r-shares-sub"></div>
         </div>
 
@@ -281,7 +287,7 @@
             const cost = shares * entry;
             const maxLoss = shares * riskPerShare;
 
-            $('r-shares').textContent = shares.toLocaleString();
+            $('r-shares').value = shares;
             $('r-shares-sub').textContent = 'shares  ·  total cost ' + fmt(cost);
             $('r-cost').textContent = fmt(cost);
             $('r-stop').textContent = fmt(stop);
@@ -305,6 +311,33 @@
             }
 
             $('results').style.display = 'block';
+        }
+
+        function manualUpdate() {
+            const acc = parseFloat($('account').value);
+            const entry = parseFloat($('entry').value);
+            const stop = parseFloat($('stop').value);
+            const target = parseFloat($('target').value);
+            const shares = parseFloat($('r-shares').value) || 0;
+
+            if (!acc || !entry || !stop) return;
+
+            const cost = shares * entry;
+            const maxLoss = shares * (entry - stop);
+
+            $('r-shares-sub').textContent = 'shares  ·  total cost ' + fmt(cost);
+            $('r-cost').textContent = fmt(cost);
+            $('r-loss').textContent = '−' + fmt(maxLoss);
+            $('r-loss-sub').textContent = 'account after stop: ' + fmt(acc - maxLoss);
+            $('r-after-loss').textContent = fmt(acc - maxLoss);
+
+            if (target && target > entry) {
+                const gain = shares * (target - entry);
+                const rr = (target - entry) / (entry - stop);
+                $('r-gain').textContent = '+' + fmt(gain);
+                $('r-gain-sub').textContent = 'account after profit: ' + fmt(acc + gain);
+                $('r-after-profit').textContent = fmt(acc + gain);
+            }
         }
 
         document.addEventListener('keydown', e => { if (e.key === 'Enter') calc(); });
