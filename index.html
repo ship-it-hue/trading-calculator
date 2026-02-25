@@ -170,27 +170,27 @@
 
     <div class="field">
         <label>Account Balance ($)</label>
-        <input type="number" id="account" placeholder="200600" />
+        <input type="number" id="account" placeholder="200600" oninput="calc()" />
     </div>
 
     <div class="field">
         <label>Risk % (default 1%)</label>
-        <input type="number" id="risk" placeholder="1" value="1" />
+        <input type="number" id="risk" placeholder="1" value="1" oninput="calc()" />
     </div>
 
     <div class="field">
         <label>Entry Price ($)</label>
-        <input type="number" id="entry" placeholder="230.00" step="0.01" />
+        <input type="number" id="entry" placeholder="230.00" step="0.01" oninput="calc()" />
     </div>
 
     <div class="field">
         <label>Stop-Loss Price ($)</label>
-        <input type="number" id="stop" placeholder="225.00" step="0.01" />
+        <input type="number" id="stop" placeholder="225.00" step="0.01" oninput="calc()" />
     </div>
 
     <div class="field">
         <label>Profit Target ($) — optional</label>
-        <input type="number" id="target" placeholder="245.00" step="0.01" />
+        <input type="number" id="target" placeholder="245.00" step="0.01" oninput="calc()" />
     </div>
 
     <button onclick="calc()">Calculate</button>
@@ -247,11 +247,33 @@
             const stop = parseFloat($('stop').value);
             const target = parseFloat($('target').value);
 
-            if (!acc || acc <= 0) return err('Enter a valid account balance.');
-            if (!entry || entry <= 0) return err('Enter a valid entry price.');
-            if (!stop || stop <= 0) return err('Enter a valid stop-loss price.');
-            if (stop >= entry) return err('Stop-loss must be below entry price.');
-            if (target && target <= entry) return err('Profit target must be above entry price.');
+            // Update Total Risk immediately if account and risk are valid
+            if (acc && acc > 0) {
+                const totalRisk = acc * (riskPct / 100);
+                $('r-risk').textContent = fmt(totalRisk);
+            } else {
+                $('r-risk').textContent = '--';
+            }
+
+            // Check if full trade can be calculated
+            if (!acc || acc <= 0 || !entry || entry <= 0 || !stop || stop <= 0) {
+                $('results').style.display = 'block'; // Keep results visible for the Risk update
+                $('r-shares').textContent = '--';
+                $('r-shares-sub').textContent = 'waiting for entry/stop...';
+                $('r-cost').textContent = '--';
+                $('r-stop').textContent = '--';
+                $('r-loss').textContent = '--';
+                $('r-loss-sub').textContent = '--';
+                $('r-after-loss').textContent = '--';
+                $('r-gain').textContent = '';
+                $('r-gain-sub').textContent = '';
+                ['row-target', 'row-gain', 'row-rr', 'row-after'].forEach(id => $(id).style.display = 'none');
+                return;
+            }
+
+            if (stop >= entry) {
+                return err('Stop-loss must be below entry price.');
+            }
 
             const totalRisk = acc * (riskPct / 100);
             const riskPerShare = entry - stop;
@@ -259,8 +281,6 @@
             const cost = shares * entry;
             const maxLoss = shares * riskPerShare;
 
-            $('r-risk').textContent = fmt(totalRisk);
-            $('r-rps').textContent = fmt(riskPerShare);
             $('r-shares').textContent = shares.toLocaleString();
             $('r-shares-sub').textContent = 'shares  ·  total cost ' + fmt(cost);
             $('r-cost').textContent = fmt(cost);
@@ -269,7 +289,7 @@
             $('r-loss-sub').textContent = 'account after stop: ' + fmt(acc - maxLoss);
             $('r-after-loss').textContent = fmt(acc - maxLoss);
 
-            if (target) {
+            if (target && target > entry) {
                 const gain = shares * (target - entry);
                 const rr = (target - entry) / riskPerShare;
                 $('r-target').textContent = fmt(target);
