@@ -264,7 +264,7 @@
             // Check if full trade can be calculated
             if (!acc || acc <= 0 || !entry || entry <= 0 || !stop || stop <= 0) {
                 $('results').style.display = 'block'; // Keep results visible for the Risk update
-                $('r-shares').textContent = '--';
+                $('r-shares').value = '';
                 $('r-shares-sub').textContent = 'waiting for entry/stop...';
                 $('r-cost').textContent = '--';
                 $('r-stop').textContent = '--';
@@ -283,7 +283,14 @@
 
             const totalRisk = acc * (riskPct / 100);
             const riskPerShare = entry - stop;
-            const shares = Math.floor(totalRisk / riskPerShare);
+            let shares = Math.floor(totalRisk / riskPerShare);
+
+            // Limit shares to purchasing power
+            const maxShares = Math.floor(acc / entry);
+            if (shares > maxShares) {
+                shares = maxShares;
+            }
+
             const cost = shares * entry;
             const maxLoss = shares * riskPerShare;
 
