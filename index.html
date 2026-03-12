@@ -167,6 +167,74 @@
             font-size: 13px;
             margin-top: 8px;
         }
+
+        .label-row {
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+            margin-bottom: 5px;
+        }
+
+        .label-row label {
+            margin-bottom: 0;
+        }
+
+        .toggle-wrap {
+            display: flex;
+            align-items: center;
+            gap: 6px;
+        }
+
+        .toggle-wrap span {
+            font-size: 11px;
+            color: #666;
+            text-transform: uppercase;
+            letter-spacing: 0.04em;
+            user-select: none;
+        }
+
+        .toggle {
+            position: relative;
+            width: 34px;
+            height: 18px;
+            cursor: pointer;
+        }
+
+        .toggle input {
+            opacity: 0;
+            width: 0;
+            height: 0;
+            position: absolute;
+        }
+
+        .toggle .slider {
+            position: absolute;
+            inset: 0;
+            background: #2e2e2e;
+            border-radius: 9px;
+            transition: background 0.2s;
+        }
+
+        .toggle .slider::after {
+            content: '';
+            position: absolute;
+            top: 2px;
+            left: 2px;
+            width: 14px;
+            height: 14px;
+            background: #888;
+            border-radius: 50%;
+            transition: transform 0.2s, background 0.2s;
+        }
+
+        .toggle input:checked + .slider {
+            background: #2563eb;
+        }
+
+        .toggle input:checked + .slider::after {
+            transform: translateX(16px);
+            background: #fff;
+        }
     </style>
 </head>
 
@@ -180,7 +248,16 @@
     </div>
 
     <div class="field">
-        <label>Risk % (default 1%)</label>
+        <div class="label-row">
+            <label>Risk % (default 1%)</label>
+            <div class="toggle-wrap">
+                <span>Overspend</span>
+                <label class="toggle">
+                    <input type="checkbox" id="overspend" onchange="calc()" />
+                    <div class="slider"></div>
+                </label>
+            </div>
+        </div>
         <input type="number" id="risk" placeholder="1" value="1" oninput="calc()" />
     </div>
 
@@ -285,10 +362,12 @@
             const riskPerShare = entry - stop;
             let shares = Math.floor(totalRisk / riskPerShare);
 
-            // Limit shares to purchasing power
-            const maxShares = Math.floor(acc / entry);
-            if (shares > maxShares) {
-                shares = maxShares;
+            // Limit shares to purchasing power unless overspend is on
+            if (!$('overspend').checked) {
+                const maxShares = Math.floor(acc / entry);
+                if (shares > maxShares) {
+                    shares = maxShares;
+                }
             }
 
             const cost = shares * entry;
